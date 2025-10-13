@@ -50,11 +50,11 @@
 * **`Appointment` (Прийом):**
     * `AppointmentID` (PK), `AppointmentDate`, `Symptoms`, `Diagnosis`, `PatientID` (FK), `DoctorID` (FK).
 * **`LabTest` (Лабораторний Тест):**
-    * `TestID` (PK), `AppointmentID` (FK), `TestName`, `TestDate`, `Results`, `Status`.
+    * `TestID` (PK), `AppointmentID` (FK), `TestName`, `TestDate`, `Results`.
 * **`Medication` (Довідник Медикаментів):**
     * `MedicationID` (PK), `MedicationName`, `Manufacturer`, `Description`.
 * **`Prescription` (Рецепт):**
-    * `PrescriptionID` (PK), `AppointmentID` (FK), `MedicationID` (FK), `Dosage`, `Instructions`, `PrescriptionDate`.
+    * `PrescriptionID` (PK), `AppointmentID` (FK), `MedicationID` (FK), `Dosage`, `Instructions`.
 
 #### Пояснення зв'язків
 
@@ -71,8 +71,7 @@
 
 #### Припущення
 
-* Припускається, що графік роботи лікаря є фіксованим за днями тижня. Модель не враховує тимчасові зміни, такі як відпустки чи лікарняні.
-* Атрибут `AvailabilityStatus` у сутності `Doctor` є простим текстовим полем (або переліком), яке оновлюється вручну або за простим тригером.
+* Припускається, що графік роботи лікаря є фіксованим за днями тижня. 
 * Припускається, що кожен лікар працює тільки в одному відділенні.
 * Вважається, що результати тестів (`Results` у сутності `LabTest`) зберігаються у текстовому форматі.
 
