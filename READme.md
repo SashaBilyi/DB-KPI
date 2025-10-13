@@ -32,90 +32,8 @@
 * При виписці рецепта лікар повинен обирати препарат з існуючого довідника медикаментів.
 * Поточний статус лікаря (`AvailabilityStatus`) оновлюється системою або адміністратором для відображення його реальної доступності.
 
-### 2. ER-діаграма (Entity-Relationship Diagram)
 
-```mermaid
-erDiagram
-    PATIENT {
-        int PatientID PK
-        string FirstName
-        string LastName
-        date DateOfBirth
-    }
-
-    MEDICAL_RECORD {
-        int RecordID PK
-        int PatientID FK
-        string Allergies
-        string ChronicConditions
-        string BloodType
-    }
-
-    DEPARTMENT {
-        int DepartmentID PK
-        string DepartmentName
-        string Location
-    }
-
-    DOCTOR {
-        int DoctorID PK
-        string FirstName
-        string LastName
-        string Specialization
-        string AvailabilityStatus
-        int DepartmentID FK
-    }
-
-    SCHEDULE {
-        int ScheduleID PK
-        int DoctorID FK
-        string DayOfWeek
-        time StartTime
-        time EndTime
-    }
-
-    APPOINTMENT {
-        int AppointmentID PK
-        datetime AppointmentDate
-        string Symptoms
-        string Diagnosis
-        int PatientID FK
-        int DoctorID FK
-    }
-
-    LAB_TEST {
-        int TestID PK
-        int AppointmentID FK
-        string TestName
-        date TestDate
-        string Results
-    }
-
-    PRESCRIPTION {
-        int PrescriptionID PK
-        int AppointmentID FK
-        int MedicationID FK
-        string Dosage
-        string Instructions
-    }
-
-    MEDICATION {
-        int MedicationID PK
-        string MedicationName
-        string Manufacturer
-    }
-
-    PATIENT ||--|| MEDICAL_RECORD : "has"
-    DEPARTMENT ||--o{ DOCTOR : "employs"
-    DOCTOR ||--o{ SCHEDULE : "has"
-    PATIENT ||--o{ APPOINTMENT : "schedules"
-    DOCTOR ||--o{ APPOINTMENT : "conducts"
-    APPOINTMENT ||--o{ LAB_TEST : "orders"
-    APPOINTMENT ||--o{ PRESCRIPTION : "issues"
-    MEDICATION ||--o{ PRESCRIPTION : "is prescribed in"
-```
-
-### 3. Опис сутностей, атрибутів та зв'язків
+### 2. Опис сутностей, атрибутів та зв'язків
 
 #### Сутності та їх атрибути
 
@@ -149,7 +67,7 @@ erDiagram
 * **`Appointment` ↔ `Prescription` (issues):** Зв'язок "один-до-багатьох". Під час одного `Appointment` лікар видає (*issues*) декілька `Prescription`.
 * **`Medication` ↔ `Prescription` (is prescribed in):** Зв'язок "один-до-багатьох". Один `Medication` призначається у (*is prescribed in*) багатьох `Prescription`.
 
-### 4. Припущення та обмеження
+### 3. Припущення та обмеження
 
 #### Припущення
 
