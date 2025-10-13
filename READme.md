@@ -1,0 +1,165 @@
+# Система управління лікарняними записами: Проектування бази даних
+
+ Метою роботи є збір вимог та розробка концептуальної моделі даних (ER-діаграми) для системи управління лікарняними записами.
+
+## Лабораторна робота №1: Збір вимог та розробка ER-схеми
+
+### 1. Короткий виклад вимог
+
+#### Потреби зацікавлених сторін
+
+Метою системи є створення комплексної цифрової платформи для управління медичними даними та операційними процесами клініки. Система повинна забезпечити лікарів миттєвим доступом до повної історії хвороби пацієнта, а пацієнтам — зручний інструмент для онлайн-запису на прийом на основі реального графіка роботи лікарів. Для адміністрації клініки система має надавати інструменти для управління персоналом, їхнім розкладом та моніторингу поточного статусу (доступності) лікарів.
+
+#### Дані для зберігання
+
+Система повинна зберігати наступну інформацію:
+* **Про пацієнтів:** персональні та контактні дані.
+* **Про медичні картки:** унікальну для кожного пацієнта картку з інформацією про алергії, хронічні захворювання та групу крові.
+* **Про відділення:** назви та розташування клінічних відділень.
+* **Про лікарів:** персональні дані, спеціалізацію, приналежність до відділення та поточний статус доступності.
+* **Про графік роботи:** детальний тижневий розклад для кожного лікаря із зазначенням робочих днів та годин.
+* **Про прийоми:** деталі кожного візиту, включаючи дату, симптоми пацієнта, діагноз лікаря та статус прийому.
+* **Про лабораторні тести:** інформацію про призначені аналізи, їх дати та результати.
+* **Про медикаменти:** централізований довідник ліків з їх назвами та виробниками.
+* **Про рецепти:** деталі кожного виписаного рецепта з прив'язкою до конкретного прийому та медикаменту.
+
+#### Бізнес-правила
+
+* Кожен пацієнт повинен мати одну і тільки одну медичну картку.
+* Кожен лікар має бути приписаний до одного відділення і мати власний графік роботи.
+* Створення запису на прийом можливе лише на час, що відповідає графіку роботи обраного лікаря.
+* Лабораторний тест або рецепт не можуть існувати без прив'язки до конкретного прийому.
+* При виписці рецепта лікар повинен обирати препарат з існуючого довідника медикаментів.
+* Поточний статус лікаря (`AvailabilityStatus`) оновлюється системою або адміністратором для відображення його реальної доступності.
+
+### 2. ER-діаграма (Entity-Relationship Diagram)
+
+```mermaid
+erDiagram
+    PATIENT {
+        int PatientID PK
+        string FirstName
+        string LastName
+        date DateOfBirth
+    }
+
+    MEDICAL_RECORD {
+        int RecordID PK
+        int PatientID FK
+        string Allergies
+        string ChronicConditions
+        string BloodType
+    }
+
+    DEPARTMENT {
+        int DepartmentID PK
+        string DepartmentName
+        string Location
+    }
+
+    DOCTOR {
+        int DoctorID PK
+        string FirstName
+        string LastName
+        string Specialization
+        string AvailabilityStatus
+        int DepartmentID FK
+    }
+
+    SCHEDULE {
+        int ScheduleID PK
+        int DoctorID FK
+        string DayOfWeek
+        time StartTime
+        time EndTime
+    }
+
+    APPOINTMENT {
+        int AppointmentID PK
+        datetime AppointmentDate
+        string Symptoms
+        string Diagnosis
+        int PatientID FK
+        int DoctorID FK
+    }
+
+    LAB_TEST {
+        int TestID PK
+        int AppointmentID FK
+        string TestName
+        date TestDate
+        string Results
+    }
+
+    PRESCRIPTION {
+        int PrescriptionID PK
+        int AppointmentID FK
+        int MedicationID FK
+        string Dosage
+        string Instructions
+    }
+
+    MEDICATION {
+        int MedicationID PK
+        string MedicationName
+        string Manufacturer
+    }
+
+    PATIENT ||--|| MEDICAL_RECORD : "has"
+    DEPARTMENT ||--o{ DOCTOR : "employs"
+    DOCTOR ||--o{ SCHEDULE : "has"
+    PATIENT ||--o{ APPOINTMENT : "schedules"
+    DOCTOR ||--o{ APPOINTMENT : "conducts"
+    APPOINTMENT ||--o{ LAB_TEST : "orders"
+    APPOINTMENT ||--o{ PRESCRIPTION : "issues"
+    MEDICATION ||--o{ PRESCRIPTION : "is prescribed in"
+```
+
+### 3. Опис сутностей, атрибутів та зв'язків
+
+#### Сутності та їх атрибути
+
+* **`Patient` (Пацієнт):**
+    * `PatientID` (PK), `FirstName`, `LastName`, `DateOfBirth`, `Gender`, `PhoneNumber`, `Address`.
+* **`MedicalRecord` (Медична Картка):**
+    * `RecordID` (PK), `PatientID` (FK), `Allergies`, `ChronicConditions`, `BloodType`.
+* **`Department` (Відділення):**
+    * `DepartmentID` (PK), `DepartmentName`, `Location`.
+* **`Doctor` (Лікар):**
+    * `DoctorID` (PK), `FirstName`, `LastName`, `Specialization`, `AvailabilityStatus`, `DepartmentID` (FK).
+* **`Schedule` (Графік Роботи):**
+    * `ScheduleID` (PK), `DoctorID` (FK), `DayOfWeek`, `StartTime`, `EndTime`.
+* **`Appointment` (Прийом):**
+    * `AppointmentID` (PK), `AppointmentDate`, `Symptoms`, `Diagnosis`, `PatientID` (FK), `DoctorID` (FK).
+* **`LabTest` (Лабораторний Тест):**
+    * `TestID` (PK), `AppointmentID` (FK), `TestName`, `TestDate`, `Results`, `Status`.
+* **`Medication` (Довідник Медикаментів):**
+    * `MedicationID` (PK), `MedicationName`, `Manufacturer`, `Description`.
+* **`Prescription` (Рецепт):**
+    * `PrescriptionID` (PK), `AppointmentID` (FK), `MedicationID` (FK), `Dosage`, `Instructions`, `PrescriptionDate`.
+
+#### Пояснення зв'язків
+
+* **`Patient` ↔ `MedicalRecord` (has):** Зв'язок "один-до-одного". Кожен `Patient` має (*has*) одну і тільки одну `MedicalRecord`.
+* **`Department` ↔ `Doctor` (employs):** Зв'язок "один-до-багатьох". Одне `Department` наймає (*employs*) багато `Doctor`, але кожен `Doctor` належить лише до одного `Department`.
+* **`Doctor` ↔ `Schedule` (has):** Зв'язок "один-до-багатьох". Один `Doctor` має (*has*) свій `Schedule`, що складається з кількох записів, але кожен запис у графіку стосується лише одного лікаря.
+* **`Patient` ↔ `Appointment` (schedules):** Зв'язок "один-до-багатьох". Один `Patient` планує (*schedules*) багато `Appointment`, але кожен `Appointment` пов'язаний лише з одним `Patient`.
+* **`Doctor` ↔ `Appointment` (conducts):** Зв'язок "один-до-багатьох". Один `Doctor` проводить (*conducts*) багато `Appointment`, але кожен `Appointment` проводиться одним конкретним `Doctor`.
+* **`Appointment` ↔ `LabTest` (orders):** Зв'язок "один-до-багатьох". В рамках одного `Appointment` лікар замовляє (*orders*) декілька `LabTest`.
+* **`Appointment` ↔ `Prescription` (issues):** Зв'язок "один-до-багатьох". Під час одного `Appointment` лікар видає (*issues*) декілька `Prescription`.
+* **`Medication` ↔ `Prescription` (is prescribed in):** Зв'язок "один-до-багатьох". Один `Medication` призначається у (*is prescribed in*) багатьох `Prescription`.
+
+### 4. Припущення та обмеження
+
+#### Припущення
+
+* Припускається, що графік роботи лікаря є фіксованим за днями тижня. Модель не враховує тимчасові зміни, такі як відпустки чи лікарняні.
+* Атрибут `AvailabilityStatus` у сутності `Doctor` є простим текстовим полем (або переліком), яке оновлюється вручну або за простим тригером.
+* Припускається, що кожен лікар працює тільки в одному відділенні.
+* Вважається, що результати тестів (`Results` у сутності `LabTest`) зберігаються у текстовому форматі.
+
+#### Обмеження
+
+* Система не обробляє аспекти страхування, виставлення рахунків та оплати медичних послуг.
+* Модель не відстежує кількість медикаментів на складі.
+* Система не управляє чергою пацієнтів у реальному часі (тільки записом на конкретний час).
