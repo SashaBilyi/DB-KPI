@@ -1,0 +1,107 @@
+generator client {
+  provider = "prisma-client"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model appointment {
+  appointmentid   Int            @id @default(autoincrement())
+  appointmentdate DateTime       @db.Timestamp(6)
+  symptoms        String?
+  diagnosis       String?
+  patientid       Int
+  doctorid        Int
+  doctor          doctor         @relation(fields: [doctorid], references: [doctorid], onDelete: SetNull, onUpdate: NoAction)
+  patient         patient        @relation(fields: [patientid], references: [patientid], onDelete: Cascade, onUpdate: NoAction)
+  lab_test        lab_test[]
+  prescription    prescription[]
+}
+
+model department {
+  departmentid   Int      @id @default(autoincrement())
+  departmentname String   @unique @db.VarChar(100)
+  location       String?  @db.VarChar(255)
+  doctor         doctor[]
+}
+
+model doctor {
+  doctorid           Int           @id @default(autoincrement())
+  firstname          String        @db.VarChar(100)
+  lastname           String        @db.VarChar(100)
+  specialization     String?       @db.VarChar(100)
+  availabilitystatus String?       @db.VarChar(50)
+  departmentid       Int
+  appointment        appointment[]
+  department         department    @relation(fields: [departmentid], references: [departmentid], onDelete: NoAction, onUpdate: NoAction)
+  schedule           schedule[]
+  reviews            Review[]
+}
+
+model lab_test {
+  testid        Int         @id @default(autoincrement())
+  appointmentid Int
+  testname      String      @db.VarChar(100)
+  testdate      DateTime?   @db.Date
+  results       String?
+  appointment   appointment @relation(fields: [appointmentid], references: [appointmentid], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model medical_record {
+  recordid          Int     @id @default(autoincrement())
+  patientid         Int     @unique
+  allergies         String?
+  chronicconditions String?
+  bloodtype         String? @db.VarChar(3)
+  patient           patient @relation(fields: [patientid], references: [patientid], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model medication {
+  medicationid   Int            @id @default(autoincrement())
+  medicationname String         @unique @db.VarChar(100)
+  manufacturer   String?        @db.VarChar(100)
+  // description видалено у міграції drop_desc
+  prescription   prescription[]
+}
+
+model patient {
+  patientid      Int             @id @default(autoincrement())
+  firstname      String          @db.VarChar(100)
+  lastname       String          @db.VarChar(100)
+  dateofbirth    DateTime        @db.Date
+  phonenumber    String?         @unique @db.VarChar(20)
+  address        String?
+  email          String?         // Додано у міграції add_email
+  appointment    appointment[]
+  medical_record medical_record?
+}
+
+model prescription {
+  prescriptionid Int         @id @default(autoincrement())
+  appointmentid  Int
+  medicationid   Int
+  dosage         String      @db.VarChar(100)
+  instructions   String?
+  appointment    appointment @relation(fields: [appointmentid], references: [appointmentid], onDelete: Cascade, onUpdate: NoAction)
+  medication     medication  @relation(fields: [medicationid], references: [medicationid], onUpdate: NoAction)
+}
+
+model schedule {
+  scheduleid Int      @id @default(autoincrement())
+  doctorid   Int
+  dayofweek  String   @db.VarChar(20)
+  starttime  DateTime @db.Time(6)
+  endtime    DateTime @db.Time(6)
+  doctor     doctor   @relation(fields: [doctorid], references: [doctorid], onDelete: Cascade, onUpdate: NoAction)
+}
+
+model Review {
+  id       Int     @id @default(autoincrement())
+  rating   Int
+  comment  String?
+  doctorid Int
+  doctor   doctor  @relation(fields: [doctorid], references: [doctorid])
+}
